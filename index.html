@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MizuHub | Key System</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Orbitron',sans-serif;}
+  body{
+    background:#000;
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    text-align:center;
+    overflow:hidden;
+  }
+
+  h1{
+    font-size:3em;
+    color:white;
+    text-shadow:0 0 10px #fff,0 0 20px #fff;
+    margin-bottom:30px;
+  }
+
+  .buttons{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    margin-bottom:20px;
+    width:250px;
+  }
+
+  .buttons button{
+    padding:15px 0;
+    border-radius:20px;
+    border:2px solid #555;
+    background:rgba(0,0,0,0.6);
+    color:white;
+    font-weight:bold;
+    font-size:1.2em;
+    cursor:pointer;
+    transition:0.3s;
+    box-shadow:0 0 10px #fff,0 0 20px #fff inset;
+  }
+
+  .buttons button:hover{
+    background:rgba(255,255,255,0.1);
+    transform:scale(1.05);
+  }
+
+  /* Checkpoint stays green */
+  #checkpoint{
+    margin-top:15px;
+    font-size:1.2em;
+    color:#00ff88;
+    text-shadow:0 0 5px #fff;
+  }
+
+  footer{
+    font-size:0.9em;
+    color:#aaa;
+    text-shadow:0 0 5px #fff;
+    margin-top:30px;
+  }
+
+  canvas{
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    z-index:-1;
+  }
+
+  /* Modal popup */
+  .modal{
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.85);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    visibility:hidden;
+    opacity:0;
+    transition:0.3s;
+    z-index:999;
+    flex-direction:column;
+    gap:20px;
+  }
+
+  .modal.show{
+    visibility:visible;
+    opacity:1;
+  }
+
+  .modal-content{
+    background:#111;
+    padding:20px 30px;
+    border-radius:15px;
+    text-align:left;
+    box-shadow:0 0 20px #fff; /* white shadow */
+    max-width:300px;
+    width:90%;
+  }
+
+  .modal-content h2{
+    margin-bottom:15px;
+    color:#fff; /* white title */
+    font-size:1.6em;
+    text-align:center;
+  }
+
+  .option{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:8px 12px;
+    margin-bottom:10px;
+    border-radius:12px;
+    cursor:pointer;
+    transition:0.3s;
+    background:rgba(255,255,255,0.05); /* subtle white background */
+    color:#fff; /* white text */
+  }
+  .option:hover{
+    background:rgba(255,255,255,0.15);
+  }
+
+  .circle{
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    border:2px solid #fff; /* white circle */
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:0.9em;
+    transition:0.3s;
+    box-shadow:0 0 5px #fff; /* white shine */
+    color:#fff;
+  }
+  .option:hover .circle{
+    transform:scale(1.2);
+    box-shadow:0 0 12px #fff,0 0 20px #fff inset; /* white hover shine */
+  }
+
+  .cancel-btn{
+    display:block;
+    margin:10px auto 0 auto;
+    padding:8px 25px;
+    border-radius:12px;
+    border:2px solid #fff;
+    background:rgba(255,255,255,0.05);
+    cursor:pointer;
+    color:#fff;
+    transition:0.3s;
+  }
+  .cancel-btn:hover{
+    background:rgba(255,255,255,0.15);
+  }
+
+  @media(max-width:500px){
+    h1{font-size:2em;}
+  }
+</style>
+</head>
+<body>
+
+<h1>MizuHub | Key System</h1>
+
+<div class="buttons">
+  <button id="getKey">Get Key | 🔑</button>
+</div>
+
+<div id="checkpoint">Checkpoint 1</div>
+
+<footer>Website By: @mizuscripts</footer>
+
+<!-- Modal -->
+<div class="modal" id="keyModal">
+  <div class="modal-content">
+    <h2>Select Link</h2>
+    <div class="option" data-link="https://link-center.net/1378511/akfq00AJOfIM">
+      <span>Linkvertise</span>
+      <div class="circle">O</div>
+    </div>
+    <div class="option" data-link="https://workink.net/23An/kd8zw47r">
+      <span>Work.Ink</span>
+      <div class="circle">O</div>
+    </div>
+    <button class="cancel-btn" id="closeModal">Cancel</button>
+  </div>
+</div>
+
+<canvas id="stars"></canvas>
+
+<script>
+  // Stars animation
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+  let w, h;
+
+  function initCanvas(){
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+    stars = [];
+    for(let i=0;i<200;i++){
+      stars.push({
+        x:Math.random()*w,
+        y:Math.random()*h,
+        r:Math.random()*1.5,
+        d:Math.random()*1.5
+      });
+    }
+  }
+
+  function drawStars(){
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    for(let i=0;i<stars.length;i++){
+      let s = stars[i];
+      ctx.moveTo(s.x,s.y);
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2,true);
+    }
+    ctx.fill();
+    moveStars();
+  }
+
+  let angle = 0;
+  function moveStars(){
+    angle += 0.01;
+    for(let i=0;i<stars.length;i++){
+      let s = stars[i];
+      s.x += Math.sin(angle+s.d)*0.5;
+      s.y += Math.cos(angle+s.d)*0.5;
+      if(s.x<0)s.x=w;
+      if(s.x>w)s.x=0;
+      if(s.y<0)s.y=h;
+      if(s.y>h)s.y=0;
+    }
+  }
+
+  function animate(){
+    drawStars();
+    requestAnimationFrame(animate);
+  }
+
+  window.addEventListener('resize',initCanvas);
+  initCanvas();
+  animate();
+
+  // Modal logic
+  const keyBtn = document.getElementById('getKey');
+  const modal = document.getElementById('keyModal');
+  const closeModalBtn = document.getElementById('closeModal');
+
+  keyBtn.addEventListener('click',()=> modal.classList.add('show'));
+  closeModalBtn.addEventListener('click',()=> modal.classList.remove('show'));
+
+  // Option click
+  document.querySelectorAll('.option').forEach(opt=>{
+    opt.addEventListener('click',()=>{
+      const link = opt.dataset.link;
+      window.open(link,'_blank');
+      modal.classList.remove('show');
+    });
+  });
+</script>
+
+</body>
+</html>
